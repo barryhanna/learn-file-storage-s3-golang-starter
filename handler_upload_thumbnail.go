@@ -58,10 +58,9 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	videoThumbnail := thumbnail{data: imageData, mediaType: mediaType}
-	videoThumbnails[userID] = videoThumbnail
+	videoThumbnails[videoID] = videoThumbnail
 	formattedThumbnailUrl := fmt.Sprintf("http://localhost:%s/api/thumbnails/%s", cfg.port, videoID)
 	video.ThumbnailURL = &formattedThumbnailUrl
-	fmt.Println("FORMATTED THUMBNAIL URL: ", formattedThumbnailUrl)
 	cfg.db.UpdateVideo(video)
 	respondWithJSON(w, http.StatusOK, database.Video(video))
 }
