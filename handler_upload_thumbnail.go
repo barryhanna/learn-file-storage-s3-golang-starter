@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"mime"
@@ -69,10 +71,17 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 	// videoThumbnail := thumbnail{data: imageData, mediaType: mediaType}
 	// videoThumbnails[videoID] = videoThumbnail
 
+	randomBytes := make([]byte, 32)
+	_, err = rand.Read(randomBytes)
+	urlEncodedVideoFilename := base64.RawURLEncoding.EncodeToString(randomBytes)
 	fileExtension := strings.Split(mediaType, "/")[1]
-	formattedThumbnailUrl := fmt.Sprintf("http://localhost:%s/assets/%s.%s", cfg.port, videoID, fileExtension)
+	path := filepath.Join(cfg.assetsRoot, urlEncodedVideoFilename+"."+fileExtension)
+	formattedThumbnailUrl := fmt.Sprintf("http://localhost:%s/assets/%s.%s", cfg.port, urlEncodedVideoFilename, fileExtension)
 	// formattedThumbnailUrl := fmt.Sprintf("data:%s;base64,%s", mediaType, base64.StdEncoding.EncodeToString(imageData))
-	path := filepath.Join(cfg.assetsRoot, videoID.String()+"."+fileExtension)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Problem generating random thumbnail name", err)
+		return
+	}
 	outFile, err := os.Create(path)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "Problem saving thumnail file to filesystem", err)
